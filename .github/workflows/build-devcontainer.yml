@@ -1,0 +1,19 @@
+name: Build Devcontainer
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  packages: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - run: script/build-devcontainer
+      - run: docker push ghcr.io/anurse/ana-os/devcontainer
+        if: github.ref == 'refs/heads/main'
