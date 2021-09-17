@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+root="$( cd "$( dirname "${BASH_SOURCE[0]}" )/.." >/dev/null 2>&1 && pwd )"
+cd "$root"
+
+if ! type cargo >/dev/null 2>&1; then
+    echo "missing 'cargo'" 1>&2
+    exit 1
+fi
+
+if ! type jq >/dev/null 2>&1; then
+    echo "missing 'jq'" 1>&2
+    exit 1
+fi
+
+arch="x86_64"
+
+echo "==> building kernel ..."
+cargo build --workspace --target "$root/ana-kernel/arch/$arch/$arch-anaos.json"
+
+echo "==> preparing boot image ..."
+script/helpers/make-bootable "$root/target/$arch-anaos/debug/ana-kernel"
