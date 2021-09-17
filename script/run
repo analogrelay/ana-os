@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+root="$( cd "$( dirname "${BASH_SOURCE[0]}" )/.." >/dev/null 2>&1 && pwd )"
+cd "$root"
+
+script/build
+
+arch="x86_64"
+
+qemu-system-x86_64 -drive "format=raw,file=$root/target/$arch-anaos/debug/boot-bios-ana-kernel.img" -vnc :1
