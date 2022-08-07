@@ -1,0 +1,77 @@
+#!/bin/bash
+root="$( cd "$( dirname "${BASH_SOURCE[0]}" )/.." >/dev/null 2>&1 && pwd )"
+cd "$root"
+source "$root/script/helpers/utils.sh"
+
+if ! type rustup 2>&1 >/dev/null; then
+    fatal "Sorry, you need to install 'rustup' before I can begin."
+fi
+
+host_target=$(rustup show | grep "Default host:" | cut -d " " -f 3)
+host_arch=$(echo "$host_target" | cut -d "-" -f 1)
+debug "Host target: $host_target"
+
+positional_args=()
+target_arch=x86_64
+target_machine=
+configuration="debug"
+
+while [[ $# -gt 0 ]]; do
+    key="$1"
+    case $key in
+        -a|--arch)
+            target_arch="$1"
+            shift
+            ;;
+        -m|--machine)
+            target_machine="$1"
+            shift
+            ;;
+        -c|--config|--configuration)
+            configuration="$1"
+            shift
+            ;;
+        -*|--*)
+            echo "Unknown option $1"
+            exit 1
+            ;;
+        *)
+            positional_args+=("$1") # save positional arg
+            shift # past argument
+            ;;
+    esac
+done
+
+if [ -z "$target_machine" ]; then
+    target_machine=$(pick_default_machine $target_arch)
+fi
+
+info "Configuring for $target_arch / $target_machine"
+
+[ -f ".config/activate" ] && rm ".config/activate"
+save_config
+source ".config/activate"
+
+if ! rustup toolchain list | grep "nightly-$host_target" >/dev/null ; then
+    spin "Installing nightly rust..." rustup toolchain install nightly
+else
+    info "✅ Nightly toolchain for $host_target is already installed"
+fi
+
+if ! rustup component list --toolchain nightly --installed | grep rust-src >/dev/null; then
+    spin "Installing rust-src..." rustup component add --toolchain nightly rust-src
+else
+    info "✅ rust-src is already installed"
+fi
+
+if ! rustup component list --toolchain nightly --installed | grep llvm-tools-preview >/dev/null; then
+    spin "Installing llvm-tools-preview..." rustup component add --toolchain nightly llvm-tools-preview
+else
+    info "✅ llvm-tools-preview is already installed"
+fi
+
+if ! type bootimage 2>&1 >/dev/null; then
+    spin "Installing bootimage..." cargo install bootimage
+else
+    info "✅ bootimage is already installed"
+fi

@@ -1,0 +1,22 @@
+#!/bin/bash
+root="$( cd "$( dirname "${BASH_SOURCE[0]}" )/.." >/dev/null 2>&1 && pwd )"
+cd "$root"
+source "$root/script/helpers/utils.sh"
+load_config
+
+image_name="target/$kernel_target/$configuration/bootimage-start.bin"
+if [ ! -f $image_name ]; then
+    error "Could not find '$image_name'"
+    fatal "Please run 'script/build' before continuing"
+fi
+debug "Preparing to launch '$image_name' in QEMU"
+
+if ! type "$qemu_system" >/dev/null 2>&1; then
+    fatal "Could not find '$qemu_system' in your PATH"
+fi
+
+"$qemu_system" \
+    -machine $target_machine \
+    -drive file=$image_name,format=raw \
+    -serial stdio \
+    -no-reboot

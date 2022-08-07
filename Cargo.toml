@@ -1,5 +1,7 @@
 [workspace]
-members = ["ana-kernel"]
+members = [
+    "crates/*"
+]
 
 [profile.dev]
 panic = "abort"

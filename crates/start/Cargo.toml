@@ -1,0 +1,11 @@
+[package]
+name = "start"
+description = "Entrypoint for AnaOS. Sets up a consistent environment, loads the kernel and launches it"
+version = "0.1.0"
+edition = "2018"
+
+[dependencies]
+bootloader = "0.9.22"
+uart_16550 = "0.2.18"
+spin = "0.9.4"
+x86_64 = "0.14.10"

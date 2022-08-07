@@ -1,21 +1,29 @@
-#!/usr/bin/env bash
+#!/bin/bash
 root="$( cd "$( dirname "${BASH_SOURCE[0]}" )/.." >/dev/null 2>&1 && pwd )"
 cd "$root"
+source "$root/script/helpers/utils.sh"
+load_config
 
-if ! type cargo >/dev/null 2>&1; then
-    echo "missing 'cargo'" 1>&2
-    exit 1
+release_arg=
+if [ "$configuration" = "release" ]; then
+    release_arg="--release"
 fi
 
-if ! type jq >/dev/null 2>&1; then
-    echo "missing 'jq'" 1>&2
-    exit 1
-fi
+info "Building ana-os/start for $kernel_target..."
+cargo bootimage
 
-arch="x86_64"
+# cargo +nightly build --target $kernel_target_path $release_arg
 
-echo "==> building kernel ..."
-cargo build --workspace --target "$root/ana-kernel/arch/$arch/$arch-anaos.json"
+# cd "$root/crates/start"
+# metadata=$(cargo metadata --format-version 1)
+# root_id=$(echo "$metadata" | jq -r '.resolve.root')
+# bootloader_id=$(echo "$metadata" | jq -r ".resolve.nodes[] | select(.id == \"$root_id\") | .deps[] | select(.name == \"bootloader\") | .pkg")
+# bootloader_manifest_path=$(echo "$metadata" | jq -r ".packages[] | select(.id == \"$bootloader_id\") | .manifest_path")
+# bootloader_dir=$(dirname "$bootloader_manifest_path")
 
-echo "==> preparing boot image ..."
-script/helpers/make-bootable "$root/target/$arch-anaos/debug/ana-kernel"
+# cd "$bootloader_dir"
+# cargo builder \
+#     --target-dir "$root/target" \
+#     --out-dir "$root/target/$kernel_target/$configuration/" \
+#     --kernel-manifest "$root/crates/start/Cargo.toml" \
+#     --kernel-binary "$root/target/$kernel_target/$configuration/start"
